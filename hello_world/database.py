@@ -1,7 +1,15 @@
-from pymongo import MongoClient
+import os
+from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+
+load_dotenv()
+
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
+
+client = AsyncIOMotorClient(MONGO_URL)
+db = client[DB_NAME]
 
 
 def get_database():
-    # Подключение к локальной бд
-    client = MongoClient("mongodb://localhost:27017")
-    return client["skud_university"]
+    return db
