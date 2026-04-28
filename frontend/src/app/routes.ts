@@ -13,8 +13,8 @@ export const router = createBrowserRouter([
     Component: Root,
     children: [
       { index: true, Component: Dashboard },
-      { path: "employees", Component: Employees },
-      { path: "logs", Component: Logs },
+      { path: "people", Component: Employees },
+      { path: "events", Component: Logs },
       { path: "map", Component: FacilityMap },
       { path: "import-export", Component: ImportExport },
       { path: "profile", Component: Profile },

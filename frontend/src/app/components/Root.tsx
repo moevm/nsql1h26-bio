@@ -13,8 +13,8 @@ export default function Root() {
   
   const navItems = [
     { path: "/", label: "Дашборд", icon: LayoutDashboard, exact: true },
-    { path: "/employees", label: "Сотрудники", icon: Users },
-    { path: "/logs", label: "Логи событий", icon: FileText },
+    { path: "/people", label: "Сотрудники", icon: Users },
+    { path: "/events", label: "Логи событий", icon: FileText },
     { path: "/map", label: "Карта помещений", icon: Map },
     { path: "/import-export", label: "Импорт/Экспорт", icon: Database },
   ];
