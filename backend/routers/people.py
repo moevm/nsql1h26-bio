@@ -5,6 +5,7 @@ from datetime import datetime
 from database import get_database
 from repos import PersonRepository
 from schemas import PersonCreate, PersonUpdate, PersonResponse, RoleEnum, StatusEnum
+from services import get_current_user
 
 router = APIRouter(prefix="/people", tags=["people"])
 
@@ -12,7 +13,11 @@ async def get_person_repo() -> PersonRepository:
     return PersonRepository(get_database())
 
 @router.get("/{id}", response_model=PersonResponse)
-async def get_person(id: str, repo: PersonRepository = Depends(get_person_repo)):
+async def get_person(
+    id: str,
+    repo: PersonRepository = Depends(get_person_repo),
+    current_user: str = Depends(get_current_user)
+):
     data = await repo.find_by_id(id)
     if not data:
         raise HTTPException(status_code=404, detail="Нет такого человека")
@@ -25,11 +30,16 @@ async def get_people(
     department: Optional[str] = None,
     status: Optional[StatusEnum] = None,
     repo: PersonRepository = Depends(get_person_repo),
+    current_user: str = Depends(get_current_user)
 ):
     return await repo.filter(full_name=full_name, role=role, department=department, status=status)
 
 @router.post("/", response_model=PersonResponse)
-async def create_person(person: PersonCreate, repo: PersonRepository = Depends(get_person_repo)):
+async def create_person(
+    person: PersonCreate,
+    repo: PersonRepository = Depends(get_person_repo),
+    current_user: str = Depends(get_current_user)
+):
     data = person.model_dump()
     data["biometrics"] = []
     data["created_at"] = datetime.now()
@@ -38,7 +48,12 @@ async def create_person(person: PersonCreate, repo: PersonRepository = Depends(g
     return await repo.find_by_id(str(inserted_id))
 
 @router.put("/{id}", response_model=PersonResponse)
-async def update_person(id: str, person: PersonUpdate, repo: PersonRepository = Depends(get_person_repo)):
+async def update_person(
+    id: str,
+    person: PersonUpdate,
+    repo: PersonRepository = Depends(get_person_repo),
+    current_user: str = Depends(get_current_user)
+):
     existing = await repo.find_by_id(id)
     if not existing:
         raise HTTPException(status_code=404, detail="Нет такого человека")
@@ -47,7 +62,11 @@ async def update_person(id: str, person: PersonUpdate, repo: PersonRepository = 
     return await repo.update(id, update_data)
 
 @router.delete("/{id}")
-async def delete_person(id: str, repo: PersonRepository = Depends(get_person_repo)):
+async def delete_person(
+    id: str,
+    repo: PersonRepository = Depends(get_person_repo),
+    current_user: str = Depends(get_current_user)
+):
     existing = await repo.find_by_id(id)
     if not existing:
         raise HTTPException(status_code=404, detail="Нет такого человека")

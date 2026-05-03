@@ -50,12 +50,11 @@ export default function Employees() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
   
-  // Filters
   const [fullNameFilter, setFullNameFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "all">("all");
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
   const [departmentFilter, setDepartmentFilter] = useState("");
-  
+
   const [formData, setFormData] = useState({
     full_name: "",
     role: "staff" as Role,
@@ -74,7 +73,7 @@ export default function Employees() {
       if (statusFilter !== "all") params.set("status", statusFilter);
 
       const query = params.toString();
-      const data = await apiFetch<Person[]>(`/api/v1/people${query ? `?${query}` : ""}`);
+      const data = await apiFetch<Person[]>(`/people/${query ? `?${query}` : ""}`);
       setPeople(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось загрузить список людей.");
@@ -87,19 +86,12 @@ export default function Employees() {
     const handle = window.setTimeout(() => {
       loadPeople();
     }, 250);
-
     return () => window.clearTimeout(handle);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fullNameFilter, roleFilter, statusFilter, departmentFilter]);
 
   const handleCreate = () => {
     setEditingPerson(null);
-    setFormData({
-      full_name: "",
-      role: "staff",
-      department: "",
-      status: "active",
-    });
+    setFormData({ full_name: "", role: "staff", department: "", status: "active" });
     setIsDialogOpen(true);
   };
 
@@ -118,17 +110,16 @@ export default function Employees() {
     setError(null);
     try {
       if (editingPerson) {
-        await apiFetch<Person>(`/api/v1/people/${editingPerson._id}`, {
+        await apiFetch<Person>(`/people/${editingPerson._id}/`, {
           method: "PUT",
           body: JSON.stringify(formData),
         });
       } else {
-        await apiFetch<Person>("/api/v1/people", {
+        await apiFetch<Person>("/people/", {
           method: "POST",
           body: JSON.stringify({ ...formData, group_ids: [] }),
         });
       }
-
       setIsDialogOpen(false);
       await loadPeople();
     } catch (e) {
@@ -138,10 +129,9 @@ export default function Employees() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Вы уверены, что хотите удалить этого человека?")) return;
-
     setError(null);
     try {
-      await apiFetch(`/api/v1/people/${id}`, { method: "DELETE" });
+      await apiFetch(`/people/${id}/`, { method: "DELETE" });
       await loadPeople();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось удалить человека.");
@@ -150,12 +140,9 @@ export default function Employees() {
 
   const getRoleLabel = (role: Role) => {
     switch (role) {
-      case "student":
-        return "Студент";
-      case "staff":
-        return "Сотрудник";
-      case "guest":
-        return "Гость";
+      case "student": return "Студент";
+      case "staff": return "Сотрудник";
+      case "guest": return "Гость";
     }
   };
 
@@ -178,12 +165,10 @@ export default function Employees() {
           </p>
         </div>
         <Button onClick={handleCreate}>
-          <Plus className="size-4 mr-2" />
-          Добавить
+          <Plus className="size-4 mr-2" /> Добавить
         </Button>
       </div>
 
-      {/* Filters */}
       <Card className="mb-4">
         <CardContent className="pt-6">
           <div className="space-y-4">
@@ -192,22 +177,16 @@ export default function Employees() {
                 <Filter className="size-4 text-gray-500" />
                 <span className="font-medium">Фильтры</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Сбросить все
-              </Button>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>Сбросить все</Button>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <Input
                 placeholder="Имя (ФИО)"
                 value={fullNameFilter}
                 onChange={(e) => setFullNameFilter(e.target.value)}
               />
-
               <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as Role | "all")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Роль" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Роль" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Все роли</SelectItem>
                   <SelectItem value="student">Студент</SelectItem>
@@ -215,31 +194,25 @@ export default function Employees() {
                   <SelectItem value="guest">Гость</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Статус" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Статус" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Все статусы</SelectItem>
                   <SelectItem value="active">Активен</SelectItem>
                   <SelectItem value="blocked">Заблокирован</SelectItem>
                 </SelectContent>
               </Select>
-
               <Input
                 placeholder="Отдел / Кафедра"
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
               />
             </div>
-
             {error && <div className="text-sm text-red-600">{error}</div>}
           </div>
         </CardContent>
       </Card>
 
-      {/* Table */}
       <div className="bg-white rounded-lg border border-gray-200">
         <Table>
           <TableHeader>
@@ -254,48 +227,27 @@ export default function Employees() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                  Загрузка...
-                </TableCell>
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">Загрузка...</TableCell>
+              </TableRow>
+            ) : filteredPeople.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500">Ничего не найдено</TableCell>
               </TableRow>
             ) : (
-              filteredPeople.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                    Ничего не найдено
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPeople.map((person) => (
-                  <TableRow key={person._id}>
-                  <TableCell className="font-medium">
-                    {person.full_name}
-                  </TableCell>
+              filteredPeople.map((person) => (
+                <TableRow key={person._id}>
+                  <TableCell className="font-medium">{person.full_name}</TableCell>
                   <TableCell>{getRoleLabel(person.role)}</TableCell>
                   <TableCell>{person.department}</TableCell>
                   <TableCell>
-                    {person.status === "active" ? (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Активен</Badge>
-                    ) : (
-                      <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Заблокирован</Badge>
-                    )}
+                    <Badge className={person.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                      {person.status === "active" ? "Активен" : "Заблокирован"}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(person)}
-                      >
-                        <Edit className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(person._id)}
-                      >
-                        <Trash2 className="size-4 text-red-600" />
-                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(person)}><Edit className="size-4" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(person._id)}><Trash2 className="size-4 text-red-600" /></Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -305,15 +257,11 @@ export default function Employees() {
         </Table>
       </div>
 
-      {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editingPerson ? "Редактировать человека" : "Добавить человека"}
-            </DialogTitle>
+            <DialogTitle>{editingPerson ? "Редактировать человека" : "Добавить человека"}</DialogTitle>
           </DialogHeader>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
               <Label htmlFor="full_name">ФИО</Label>
@@ -323,13 +271,10 @@ export default function Employees() {
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="role">Роль</Label>
               <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value as Role })}>
-                <SelectTrigger id="role">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger id="role"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="student">Студент</SelectItem>
                   <SelectItem value="staff">Сотрудник</SelectItem>
@@ -337,23 +282,16 @@ export default function Employees() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="status">Статус</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value as Status })}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as Status })}>
+                <SelectTrigger id="status"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Активен</SelectItem>
                   <SelectItem value="blocked">Заблокирован</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="department">Отдел</Label>
               <Input
@@ -362,14 +300,10 @@ export default function Employees() {
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
               />
             </div>
-
             {error && <div className="text-sm text-red-600 col-span-2">{error}</div>}
           </div>
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Отмена
-            </Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Отмена</Button>
             <Button onClick={handleSave}>Сохранить</Button>
           </DialogFooter>
         </DialogContent>

@@ -81,3 +81,12 @@ class GroupResponse(Base):
     name: str
     parent_group_id: Optional[str] = None
     description: Optional[str] = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class UserMe(BaseModel):
+    username: str
+    role: str
+    full_name: str
