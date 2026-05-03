@@ -5,3 +5,8 @@ venv
 *.pytest_cache/
 *.ini
 .env
+node_modules
+frontend/node_modules
+frontend/dist
+frontend/.env
+.DS_Store
