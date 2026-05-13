@@ -4,7 +4,6 @@ __pycache__/
 venv
 *.pytest_cache/
 *.ini
-.env
 node_modules
 frontend/node_modules
 frontend/dist
