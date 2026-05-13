@@ -1,6 +1,7 @@
 from bson import ObjectId
 from datetime import datetime
 from typing import Optional
+from datetime import datetime, timezone
 
 
 class BaseRepository:
@@ -84,7 +85,7 @@ class EventRepository(BaseRepository):
         if zone_id:
             query["zone_id"] = ObjectId(zone_id)
         if decision:
-            query["decision"] = decision
+            query["decision"] = {"$regex": f"^{decision}$", "$options": "i"}
         if date_from or date_to:
             query["timestamp"] = {}
             if date_from:

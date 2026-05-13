@@ -12,23 +12,21 @@ router = APIRouter(prefix="/groups", tags=["groups"])
 async def get_group_repo() -> GroupRepository:
     return GroupRepository(get_database())
 
+@router.get("/", response_model=list[GroupResponse])
+async def get_groups(
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        parent_group_id: Optional[str] = None,
+        repo: GroupRepository = Depends(get_group_repo),
+):
+    return await repo.filter(name=name, description=description, parent_group_id=parent_group_id)
+
 @router.get("/{id}", response_model=GroupResponse)
 async def get_group(id: str, repo: GroupRepository = Depends(get_group_repo)):
     data = await repo.find_by_id(id)
     if not data:
         raise HTTPException(status_code=404, detail="Нет такой группы")
     return data
-
-
-@router.get("/", response_model=list[GroupResponse])
-async def get_groups(
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    parent_group_id: Optional[str] = None,
-    repo: GroupRepository = Depends(get_group_repo),
-):
-    return await repo.filter(name=name, description=description, parent_group_id=parent_group_id)
-
 
 @router.post("/", response_model=GroupResponse)
 async def create_group(group: GroupCreate, repo: GroupRepository = Depends(get_group_repo)):

@@ -12,6 +12,17 @@ router = APIRouter(prefix="/people", tags=["people"])
 async def get_person_repo() -> PersonRepository:
     return PersonRepository(get_database())
 
+@router.get("/", response_model=list[PersonResponse])
+async def get_people(
+        full_name: Optional[str] = None,
+        role: Optional[RoleEnum] = None,
+        department: Optional[str] = None,
+        status: Optional[StatusEnum] = None,
+        repo: PersonRepository = Depends(get_person_repo),
+        current_user: str = Depends(get_current_user)
+):
+    return await repo.filter(full_name=full_name, role=role, department=department, status=status)
+
 @router.get("/{id}", response_model=PersonResponse)
 async def get_person(
     id: str,
@@ -22,17 +33,6 @@ async def get_person(
     if not data:
         raise HTTPException(status_code=404, detail="Нет такого человека")
     return data
-
-@router.get("/", response_model=list[PersonResponse])
-async def get_people(
-    full_name: Optional[str] = None,
-    role: Optional[RoleEnum] = None,
-    department: Optional[str] = None,
-    status: Optional[StatusEnum] = None,
-    repo: PersonRepository = Depends(get_person_repo),
-    current_user: str = Depends(get_current_user)
-):
-    return await repo.filter(full_name=full_name, role=role, department=department, status=status)
 
 @router.post("/", response_model=PersonResponse)
 async def create_person(

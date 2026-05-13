@@ -57,11 +57,11 @@ export default function Logs() {
       const params = new URLSearchParams();
       if (zoneIdFilter.trim()) params.set("zone_id", zoneIdFilter.trim());
       if (decisionFilter !== "all") params.set("decision", decisionFilter);
-      if (dateFromFilter) params.set("date_from", new Date(dateFromFilter).toISOString());
-      if (dateToFilter) params.set("date_to", new Date(dateToFilter).toISOString());
+      if (dateFromFilter) params.set("date_from", dateFromFilter);
+      if (dateToFilter) params.set("date_to", dateToFilter);
 
       const query = params.toString();
-      const data = await apiFetch<LogEvent[]>(`/api/v1/events${query ? `?${query}` : ""}`);
+      const data = await apiFetch<LogEvent[]>(`/api/v1/events/${query ? `?${query}` : ""}`);
       setLogs(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось загрузить события.");
