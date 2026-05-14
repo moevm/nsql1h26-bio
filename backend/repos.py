@@ -126,10 +126,47 @@ class ZoneRepository(BaseRepository):
     def __init__(self, db):
         super().__init__(db.zones)
 
+    async def filter(
+        self,
+        name: str = None,
+        building: str = None,
+        type: str = None,
+    ):
+        query = {}
+
+        if name:
+            query["name"] = {"$regex": name, "$options": "i"}
+        if building:
+            query["building"] = {"$regex": building, "$options": "i"}
+        if type:
+            query["type"] = type
+
+        cursor = self.collection.find(query)
+        docs = await cursor.to_list(length=1000)
+        return [self._serialize(doc) for doc in docs]
 
 class DeviceRepository(BaseRepository):
     def __init__(self, db):
         super().__init__(db.devices)
+
+    async def filter(
+        self,
+        type: str = None,
+        zone_id: str = None,
+        firmware_version: str = None,
+    ):
+        query = {}
+
+        if type:
+            query["type"] = type
+        if zone_id:
+            query["zone_id"] = ObjectId(zone_id)
+        if firmware_version:
+            query["firmware_version"] = firmware_version
+
+        cursor = self.collection.find(query)
+        docs = await cursor.to_list(length=1000)
+        return [self._serialize(doc) for doc in docs]
 
 
 class PolicyRepository(BaseRepository):

@@ -1,6 +1,6 @@
 services:
   db:
-    image: mongo:6.0
+    image: mongo:7.0
     container_name: skud_db
     restart: always
     volumes:

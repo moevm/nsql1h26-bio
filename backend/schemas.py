@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -90,3 +90,47 @@ class UserMe(BaseModel):
     username: str
     role: str
     full_name: str
+
+
+
+class ZoneCreate(Base):
+    name: str
+    building: str
+    type: str
+
+
+class ZoneUpdate(Base):
+    name: Optional[str] = None
+    building: Optional[str] = None
+    type: Optional[str] = None
+
+
+class ZoneResponse(Base):
+    model_config = {"populate_by_name": True}
+
+    id: str = Field(..., alias="_id")
+    name: str
+    building: str
+    type: str
+
+
+
+class DeviceCreate(Base):
+
+    type: str
+    zone_id: str
+    firmware_version: str
+
+class DeviceUpdate(Base):
+
+    type: Optional[str] = None
+    zone_id: Optional[str] = None
+    firmware_version: Optional[str] = None
+
+class DeviceResponse(Base):
+
+    model_config = {"populate_by_name": True}
+    id: str = Field(..., alias="_id")
+    type: str
+    zone_id: str
+    firmware_version: str
