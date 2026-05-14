@@ -139,7 +139,7 @@ class ZoneRepository(BaseRepository):
         if building:
             query["building"] = {"$regex": building, "$options": "i"}
         if type:
-            query["type"] = type
+            query["type"] = {"$regex": type, "$options": "i"}
 
         cursor = self.collection.find(query)
         docs = await cursor.to_list(length=1000)
@@ -157,12 +157,12 @@ class DeviceRepository(BaseRepository):
     ):
         query = {}
 
-        if type:
-            query["type"] = type
         if zone_id:
             query["zone_id"] = ObjectId(zone_id)
+        if type:
+            query["type"] = {"$regex": type, "$options": "i"}
         if firmware_version:
-            query["firmware_version"] = firmware_version
+            query["firmware_version"] = {"$regex": firmware_version, "$options": "i"}
 
         cursor = self.collection.find(query)
         docs = await cursor.to_list(length=1000)
