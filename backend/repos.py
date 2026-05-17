@@ -1,8 +1,6 @@
 from bson import ObjectId
-from datetime import datetime
 from typing import Optional
 from datetime import datetime, timezone
-
 
 class BaseRepository:
     def __init__(self, collection):
@@ -48,10 +46,10 @@ class PersonRepository(BaseRepository):
 
     async def filter(
         self,
-        full_name: str = None,  # поиск по подстроке, регистронезависимо
-        role: str = None,  # точное совпадение: student / staff / guest
-        department: str = None,  # поиск по подстроке, регистронезависимо
-        status: str = None,  # точное совпадение: active / blocked
+        full_name: str = None,
+        role: str = None,
+        department: str = None,
+        status: str = None,
     ):
         query = {}
 
@@ -75,10 +73,10 @@ class EventRepository(BaseRepository):
 
     async def filter(
         self,
-        zone_id: str = None,  # точное совпадение по zone_id
-        date_from: datetime = None,  # начало диапазона timestamp
-        date_to: datetime = None,  # конец диапазона timestamp
-        decision: str = None,  # ALLOW / DENY
+        zone_id: str = None,
+        date_from: datetime = None,
+        date_to: datetime = None,
+        decision: str = None,
     ):
         query = {}
 
@@ -106,7 +104,7 @@ class GroupRepository(BaseRepository):
         self,
         name: str = None,
         description: str = None,
-        parent_group_id: Optional[str] = None,  # точное совпадение по parent_group_id
+        parent_group_id: Optional[str] = None,
     ):
         query = dict()
 
