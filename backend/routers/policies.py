@@ -24,6 +24,8 @@ async def get_policies(
     zone_id: Optional[str] = None,
     valid_from: Optional[datetime] = None,
     valid_to: Optional[datetime] = None,
+    skip: int = 0,
+    limit: int = 100,
     repo: PolicyRepository = Depends(get_policy_repo),
     current_user: str = Depends(get_current_user),
 ):
@@ -33,6 +35,8 @@ async def get_policies(
         zone_id=zone_id,
         valid_from=valid_from,
         valid_to=valid_to,
+        skip=skip,
+        limit=limit,
     )
 
 

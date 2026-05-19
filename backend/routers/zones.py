@@ -19,9 +19,17 @@ async def get_zones(
         building: Optional[str] = None,
         type: Optional[str] = None,
         repo: ZoneRepository = Depends(get_zone_repo),
+        skip: int = 0,
+        limit: int = 100,
         user: dict = Depends(get_current_user)
 ):
-    return await repo.filter(name=name, building=building, type=type)
+    return await repo.filter(
+        name=name,
+        building=building,
+        type=type,
+        skip=skip,
+        limit=limit,
+    )
 
 
 @router.get("/{id}", response_model=ZoneResponse)

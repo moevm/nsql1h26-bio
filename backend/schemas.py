@@ -147,8 +147,8 @@ class PolicyCreate(Base):
     target_id: str
     allowed_zone_ids: list[str]
     schedule: Schedule
-    valid_from: datetime
-    valid_to: datetime
+    valid_from: Optional[datetime] = None
+    valid_to: Optional[datetime] = None
 
 
 class PolicyUpdate(Base):
@@ -168,5 +168,5 @@ class PolicyResponse(Base):
     target_id: str
     allowed_zone_ids: list[str]
     schedule: Schedule
-    valid_from: datetime
-    valid_to: datetime
+    valid_from: Optional[datetime] = None
+    valid_to: Optional[datetime] = None

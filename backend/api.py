@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from routers import people, events, groups, auth, zones, devices, data, policies
+from routers import people, events, groups, auth, zones, devices, data, policies, analytics
 
 app = FastAPI(title="СКУД ЛЭТИ")
 
@@ -25,3 +25,4 @@ app.include_router(zones.router, prefix="/api/v1")
 app.include_router(devices.router, prefix="/api/v1")
 app.include_router(data.router, prefix="/api/v1")
 app.include_router(policies.router, prefix="/api/v1")
+app.include_router(analytics.router, prefix="/api/v1")

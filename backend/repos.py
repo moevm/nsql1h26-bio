@@ -1,6 +1,6 @@
 from bson import ObjectId
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime
 
 class BaseRepository:
     def __init__(self, collection):
@@ -194,6 +194,8 @@ class PolicyRepository(BaseRepository):
         zone_id: str = None,
         valid_from: datetime = None,
         valid_to: datetime = None,
+        skip: int = 0,
+        limit: int = 100,
     ):
         query = {}
 
@@ -212,6 +214,6 @@ class PolicyRepository(BaseRepository):
         if valid_to:
             query["valid_from"] = {"$lte": valid_to}
 
-        cursor = self.collection.find(query)
-        docs = await cursor.to_list(length=1000)
+        cursor = self.collection.find(query).skip(skip).limit(limit)
+        docs = await cursor.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]

@@ -19,13 +19,17 @@ async def get_devices(
         type: Optional[str] = None,
         zone_id: Optional[str] = None,
         firmware_version: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
         repo: DeviceRepository = Depends(get_device_repo),
         user: dict = Depends(get_current_user)
 ):
     return await repo.filter(
         type=type,
         zone_id=zone_id,
-        firmware_version=firmware_version
+        firmware_version=firmware_version,
+        skip=skip,
+        limit=limit,
     )
 
 

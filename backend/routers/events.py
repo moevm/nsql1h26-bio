@@ -24,6 +24,8 @@ async def get_events(
         date_from: Optional[datetime] = None,
         date_to: Optional[datetime] = None,
         decision: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
         repo: EventRepository = Depends(get_event_repo),
         current_user: str = Depends(get_current_user),
 ):
@@ -32,6 +34,8 @@ async def get_events(
         date_from=date_from,
         date_to=date_to,
         decision=decision,
+        skip=skip,
+        limit=limit,
     )
 
 

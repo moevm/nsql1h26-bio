@@ -17,10 +17,18 @@ async def get_groups(
         name: Optional[str] = None,
         description: Optional[str] = None,
         parent_group_id: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
         repo: GroupRepository = Depends(get_group_repo),
         user: dict = Depends(get_current_user)
 ):
-    return await repo.filter(name=name, description=description, parent_group_id=parent_group_id)
+    return await repo.filter(
+        name=name,
+        description=description,
+        parent_group_id=parent_group_id,
+        skip=skip,
+        limit=limit,
+    )
 
 @router.get("/{id}", response_model=GroupResponse)
 async def get_group(

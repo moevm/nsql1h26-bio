@@ -19,10 +19,19 @@ async def get_people(
         role: Optional[RoleEnum] = None,
         department: Optional[str] = None,
         status: Optional[StatusEnum] = None,
+        skip: int = 0,
+        limit: int = 100,
         repo: PersonRepository = Depends(get_person_repo),
         current_user: str = Depends(get_current_user)
-):
-    return await repo.filter(full_name=full_name, role=role, department=department, status=status)
+    ):
+    return await repo.filter(
+        full_name=full_name,
+        role=role,
+        department=department,
+        status=status,
+        skip=skip,
+        limit=limit,
+    )
 
 @router.get("/{id}", response_model=PersonResponse)
 async def get_person(
