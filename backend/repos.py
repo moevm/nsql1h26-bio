@@ -31,11 +31,17 @@ class BaseRepository:
     def _serialize(self, doc: dict) -> dict:
         if not doc:
             return doc
+
         if "_id" in doc:
             doc["_id"] = str(doc["_id"])
+
         if "group_ids" in doc:
             doc["group_ids"] = [str(gid) for gid in doc["group_ids"]]
-        for field in ["person_id", "device_id", "zone_id", "parent_group_id"]:
+
+        if "allowed_zone_ids" in doc:
+            doc["allowed_zone_ids"] = [str(zone_id) for zone_id in doc["allowed_zone_ids"]]
+
+        for field in ["person_id", "device_id", "zone_id", "parent_group_id", "target_id"]:
             if field in doc and doc[field] is not None:
                 doc[field] = str(doc[field])
         return doc
@@ -50,6 +56,8 @@ class PersonRepository(BaseRepository):
         role: str = None,
         department: str = None,
         status: str = None,
+        skip: int = 0,
+        limit: int = 100,
     ):
         query = {}
 
@@ -62,8 +70,8 @@ class PersonRepository(BaseRepository):
         if status:
             query["status"] = status
 
-        cursor = self.collection.find(query)
-        docs = await cursor.to_list(length=1000)
+        cursor = self.collection.find(query).skip(skip).limit(limit)
+        docs = await cursor.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]
 
 
@@ -77,6 +85,8 @@ class EventRepository(BaseRepository):
         date_from: datetime = None,
         date_to: datetime = None,
         decision: str = None,
+        skip: int = 0,
+        limit: int = 100,
     ):
         query = {}
 
@@ -91,8 +101,8 @@ class EventRepository(BaseRepository):
             if date_to:
                 query["timestamp"]["$lte"] = date_to
 
-        cursor = self.collection.find(query).sort("timestamp", -1)
-        docs = await cursor.to_list(length=1000)
+        cursor = self.collection.find(query).sort("timestamp", -1).skip(skip).limit(limit)
+        docs = await cursor.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]
 
 
@@ -105,6 +115,8 @@ class GroupRepository(BaseRepository):
         name: str = None,
         description: str = None,
         parent_group_id: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
     ):
         query = dict()
 
@@ -115,8 +127,8 @@ class GroupRepository(BaseRepository):
         if parent_group_id:
             query["parent_group_id"] = ObjectId(parent_group_id)
 
-        finds = self.collection.find(query)
-        docs = await finds.to_list(length=1000)
+        finds = self.collection.find(query).skip(skip).limit(limit)
+        docs = await finds.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]
 
 
@@ -129,6 +141,8 @@ class ZoneRepository(BaseRepository):
         name: str = None,
         building: str = None,
         type: str = None,
+        skip: int = 0,
+        limit: int = 100,
     ):
         query = {}
 
@@ -139,8 +153,8 @@ class ZoneRepository(BaseRepository):
         if type:
             query["type"] = {"$regex": type, "$options": "i"}
 
-        cursor = self.collection.find(query)
-        docs = await cursor.to_list(length=1000)
+        cursor = self.collection.find(query).skip(skip).limit(limit)
+        docs = await cursor.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]
 
 class DeviceRepository(BaseRepository):
@@ -152,6 +166,8 @@ class DeviceRepository(BaseRepository):
         type: str = None,
         zone_id: str = None,
         firmware_version: str = None,
+        skip: int = 0,
+        limit: int = 100,
     ):
         query = {}
 
@@ -162,11 +178,40 @@ class DeviceRepository(BaseRepository):
         if firmware_version:
             query["firmware_version"] = {"$regex": firmware_version, "$options": "i"}
 
-        cursor = self.collection.find(query)
-        docs = await cursor.to_list(length=1000)
+        cursor = self.collection.find(query).skip(skip).limit(limit)
+        docs = await cursor.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]
 
 
 class PolicyRepository(BaseRepository):
     def __init__(self, db):
         super().__init__(db.access_policies)
+
+    async def filter(
+        self,
+        target_type: str = None,
+        target_id: str = None,
+        zone_id: str = None,
+        valid_from: datetime = None,
+        valid_to: datetime = None,
+    ):
+        query = {}
+
+        if target_type:
+            query["target_type"] = {"$regex": f"^{target_type}$", "$options": "i"}
+
+        if target_id:
+            query["target_id"] = ObjectId(target_id)
+
+        if zone_id:
+            query["allowed_zone_ids"] = ObjectId(zone_id)
+
+        if valid_from:
+            query["valid_to"] = {"$gte": valid_from}
+
+        if valid_to:
+            query["valid_from"] = {"$lte": valid_to}
+
+        cursor = self.collection.find(query)
+        docs = await cursor.to_list(length=1000)
+        return [self._serialize(doc) for doc in docs]

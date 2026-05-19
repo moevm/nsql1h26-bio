@@ -134,3 +134,39 @@ class DeviceResponse(Base):
     type: str
     zone_id: str
     firmware_version: str
+
+
+class Schedule(Base):
+    days: list[str]
+    time_from: str
+    time_to: str
+
+
+class PolicyCreate(Base):
+    target_type: str
+    target_id: str
+    allowed_zone_ids: list[str]
+    schedule: Schedule
+    valid_from: datetime
+    valid_to: datetime
+
+
+class PolicyUpdate(Base):
+    target_type: Optional[str] = None
+    target_id: Optional[str] = None
+    allowed_zone_ids: Optional[list[str]] = None
+    schedule: Optional[Schedule] = None
+    valid_from: Optional[datetime] = None
+    valid_to: Optional[datetime] = None
+
+
+class PolicyResponse(Base):
+    model_config = {"populate_by_name": True}
+
+    id: str = Field(..., alias="_id")
+    target_type: str
+    target_id: str
+    allowed_zone_ids: list[str]
+    schedule: Schedule
+    valid_from: datetime
+    valid_to: datetime
