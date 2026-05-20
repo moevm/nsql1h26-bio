@@ -9,8 +9,9 @@ import {
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
-import { Plus, Edit, Trash2, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Eye } from "lucide-react";
 import { apiFetch } from "../api/client";
+import { useNavigate } from "react-router-dom";
 
 type Zone = { _id: string; name: string; building: string; type: string };
 
@@ -23,6 +24,7 @@ export default function Zones() {
     const [nameFilter, setNameFilter] = useState("");
     const [buildingFilter, setBuildingFilter] = useState("");
     const [formData, setFormData] = useState({ name: "", building: "", type: "" });
+    const navigate = useNavigate();
 
     async function loadZones() {
         setIsLoading(true);
@@ -139,6 +141,7 @@ export default function Zones() {
                                 <TableCell>{z.type}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
+                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/zones/${z._id}`)}><Eye className="size-4" /></Button>
                                         <Button variant="ghost" size="sm" onClick={() => handleEdit(z)}><Edit className="size-4" /></Button>
                                         <Button variant="ghost" size="sm" onClick={() => handleDelete(z._id)}><Trash2 className="size-4 text-red-600" /></Button>
                                     </div>

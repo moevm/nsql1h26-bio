@@ -9,7 +9,8 @@ import {
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
-import { Plus, Edit, Trash2, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../api/client";
 
 type Device = { _id: string; name?: string; type: string; zone_id: string; firmware_version: string };
@@ -24,6 +25,7 @@ export default function Devices() {
     const [editingDevice, setEditingDevice] = useState<Device | null>(null);
     const [typeFilter, setTypeFilter] = useState("");
     const [formData, setFormData] = useState({ type: "", zone_id: "", firmware_version: "" });
+    const navigate = useNavigate();
 
     useEffect(() => {
         apiFetch<Zone[]>("/api/v1/zones/").then(setZones).catch(() => {});
@@ -142,6 +144,7 @@ export default function Devices() {
                                 <TableCell>{d.firmware_version}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
+                                        <Button variant="ghost" size="sm" onClick={() => navigate(`/devices/${d._id}`)}><Eye className="size-4" /></Button>
                                         <Button variant="ghost" size="sm" onClick={() => handleEdit(d)}><Edit className="size-4" /></Button>
                                         <Button variant="ghost" size="sm" onClick={() => handleDelete(d._id)}><Trash2 className="size-4 text-red-600" /></Button>
                                     </div>

@@ -9,7 +9,8 @@ import {
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
-import { Plus, Edit, Trash2, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../api/client";
 
 type Group = { _id: string; name: string; parent_group_id?: string | null; description?: string | null };
@@ -22,6 +23,7 @@ export default function Groups() {
     const [editingGroup, setEditingGroup] = useState<Group | null>(null);
     const [nameFilter, setNameFilter] = useState("");
     const [formData, setFormData] = useState({ name: "", description: "", parent_group_id: "" });
+    const navigate = useNavigate();
 
     async function loadGroups() {
         setIsLoading(true);
@@ -138,10 +140,11 @@ export default function Groups() {
             <TableCell className="text-gray-500">{getParentName(g.parent_group_id)}</TableCell>
     <TableCell className="text-gray-500">{g.description ?? "—"}</TableCell>
         <TableCell className="text-right">
-    <div className="flex justify-end gap-2">
-    <Button variant="ghost" size="sm" onClick={() => handleEdit(g)}><Edit className="size-4" /></Button>
-        <Button variant="ghost" size="sm" onClick={() => handleDelete(g._id)}><Trash2 className="size-4 text-red-600" /></Button>
-        </div>
+            <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => navigate(`/groups/${g._id}`)}><Eye className="size-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => handleEdit(g)}><Edit className="size-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(g._id)}><Trash2 className="size-4 text-red-600" /></Button>
+            </div>
         </TableCell>
         </TableRow>
     ))}

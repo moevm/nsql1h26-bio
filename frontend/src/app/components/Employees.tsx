@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useNavigate } from "react-router-dom";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "./ui/table";
@@ -13,7 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "./ui/select";
 import { Card, CardContent } from "./ui/card";
-import { Plus, Edit, Trash2, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Eye } from "lucide-react";
 import { apiFetch } from "../api/client";
 
 type Role = "student" | "staff" | "guest";
@@ -27,6 +28,7 @@ type Group = { _id: string; name: string };
 
 export default function Employees() {
   const [people, setPeople] = useState<Person[]>([]);
+  const navigate = useNavigate();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -235,6 +237,7 @@ export default function Employees() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/people/${person._id}`)}><Eye className="size-4" /></Button>
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(person)}><Edit className="size-4" /></Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(person._id)}><Trash2 className="size-4 text-red-600" /></Button>
                       </div>

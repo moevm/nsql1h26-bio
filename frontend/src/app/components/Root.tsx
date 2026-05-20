@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, FileText, Map,
-  Database, Shield, LogOut, Layers, Server, GitBranch,
+  Database, Shield, LogOut, Server, GitBranch,ShieldCheck
 } from "lucide-react";
 import { clearToken, apiFetch } from "../api/client";
 
@@ -30,6 +30,7 @@ export default function Root() {
     { path: "/devices", label: "Устройства", icon: Server },
     { path: "/events", label: "События", icon: FileText },
     { path: "/import-export", label: "Импорт/Экспорт", icon: Database },
+    { path: "/policies", label: "Политики доступа", icon: ShieldCheck },
   ];
 
   function handleLogout() {

@@ -10,6 +10,11 @@ import Login from "./components/Login";
 import Groups from "./components/Groups";
 import Zones from "./components/Zones";
 import Devices from "./components/Devices";
+import PersonDetail from "./components/PersonDetail";
+import ZoneDetail from "./components/ZoneDetail";
+import DeviceDetail from "./components/DeviceDetail";
+import GroupDetail from "./components/GroupDetail";
+import Policies from "./components/Policies";
 import { getToken } from "./api/client";
 
 function ProtectedLayout() {
@@ -28,9 +33,14 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Dashboard /> },
           { path: "people", element: <Employees /> },
+          { path: "people/:id", element: <PersonDetail /> },
           { path: "groups", element: <Groups /> },
+          { path: "groups/:id", element: <GroupDetail /> },
           { path: "zones", element: <Zones /> },
+          { path: "zones/:id", element: <ZoneDetail /> },
           { path: "devices", element: <Devices /> },
+          { path: "devices/:id", element: <DeviceDetail /> },
+          { path: "policies", element: <Policies /> },
           { path: "events", element: <Logs /> },
           { path: "map", element: <FacilityMap /> },
           { path: "import-export", element: <ImportExport /> },
