@@ -9,12 +9,14 @@ import {
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
-import { Plus, Edit, Trash2, Filter, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../api/client";
 
 type Device = { _id: string; name?: string; type: string; zone_id: string; firmware_version: string };
 type Zone = { _id: string; name: string };
+
+const PAGE_SIZE = 5;
 
 export default function Devices() {
     const [devices, setDevices] = useState<Device[]>([]);
@@ -24,22 +26,24 @@ export default function Devices() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingDevice, setEditingDevice] = useState<Device | null>(null);
     const [typeFilter, setTypeFilter] = useState("");
+    const [page, setPage] = useState(0);
     const [formData, setFormData] = useState({ type: "", zone_id: "", firmware_version: "" });
     const navigate = useNavigate();
 
     useEffect(() => {
-        apiFetch<Zone[]>("/api/v1/zones/").then(setZones).catch(() => {});
+        apiFetch<Zone[]>("/api/v1/zones/?limit=1000").then(setZones).catch(() => {});
     }, []);
 
     async function loadDevices() {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await apiFetch<Device[]>("/api/v1/devices/");
-            const filtered = typeFilter
-                ? data.filter((d) => d.type.toLowerCase().includes(typeFilter.toLowerCase()))
-                : data;
-            setDevices(filtered);
+            const params = new URLSearchParams();
+            if (typeFilter.trim()) params.set("type", typeFilter.trim());
+            params.set("skip", String(page * PAGE_SIZE));
+            params.set("limit", String(PAGE_SIZE));
+            const data = await apiFetch<Device[]>(`/api/v1/devices/?${params.toString()}`);
+            setDevices(data);
         } catch (e) {
             setError(e instanceof Error ? e.message : "Ошибка загрузки.");
         } finally {
@@ -48,9 +52,13 @@ export default function Devices() {
     }
 
     useEffect(() => {
+        setPage(0);
+    }, [typeFilter]);
+
+    useEffect(() => {
         const h = window.setTimeout(loadDevices, 250);
         return () => window.clearTimeout(h);
-    }, [typeFilter]);
+    }, [typeFilter, page]);
 
     const handleCreate = () => {
         setEditingDevice(null);
@@ -104,7 +112,7 @@ export default function Devices() {
                 <div>
                     <h1 className="text-2xl font-semibold">Устройства</h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        {isLoading ? "Загрузка..." : `Показано: ${devices.length}`}
+                        {isLoading ? "Загрузка..." : `Страница ${page + 1} · показано ${devices.length}`}
                     </p>
                 </div>
                 <Button onClick={handleCreate}><Plus className="size-4 mr-2" />Добавить</Button>
@@ -129,7 +137,7 @@ export default function Devices() {
                             <TableHead>Тип</TableHead>
                             <TableHead>Зона</TableHead>
                             <TableHead>Версия прошивки</TableHead>
-                            <TableHead className="text-right w-[100px]">Действия</TableHead>
+                            <TableHead className="text-right w-[120px]">Действия</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -153,6 +161,17 @@ export default function Devices() {
                         ))}
                     </TableBody>
                 </Table>
+                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+                    <p className="text-sm text-gray-500">Страница {page + 1}</p>
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                            <ChevronLeft className="size-4 mr-1" />Назад
+                        </Button>
+                        <Button variant="outline" size="sm" disabled={devices.length < PAGE_SIZE} onClick={() => setPage((p) => p + 1)}>
+                            Вперёд<ChevronRight className="size-4 ml-1" />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

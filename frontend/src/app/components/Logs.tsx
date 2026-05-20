@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "./ui/table";
@@ -9,7 +10,7 @@ import {
 } from "./ui/select";
 import { Card, CardContent } from "./ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Filter } from "lucide-react";
+import { Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { apiFetch } from "../api/client";
 
 type LogEvent = {
@@ -20,12 +21,15 @@ type LogEvent = {
 type Person = { _id: string; full_name: string };
 type Zone = { _id: string; name: string };
 
+const PAGE_SIZE = 10;
+
 export default function Logs() {
   const [logs, setLogs] = useState<LogEvent[]>([]);
   const [people, setPeople] = useState<Record<string, string>>({});
   const [zones, setZones] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
   const [zoneIdFilter, setZoneIdFilter] = useState("");
   const [decisionFilter, setDecisionFilter] = useState("all");
   const [dateFromFilter, setDateFromFilter] = useState("");
@@ -33,13 +37,13 @@ export default function Logs() {
   const [selectedLog, setSelectedLog] = useState<LogEvent | null>(null);
 
   useEffect(() => {
-    apiFetch<Person[]>("/api/v1/people/").then((data) => {
+    apiFetch<Person[]>("/api/v1/people/?limit=1000").then((data) => {
       const map: Record<string, string> = {};
       data.forEach((p) => { map[p._id] = p.full_name; });
       setPeople(map);
     }).catch(() => {});
 
-    apiFetch<Zone[]>("/api/v1/zones/").then((data) => {
+    apiFetch<Zone[]>("/api/v1/zones/?limit=1000").then((data) => {
       const map: Record<string, string> = {};
       data.forEach((z) => { map[z._id] = z.name; });
       setZones(map);
@@ -55,8 +59,9 @@ export default function Logs() {
       if (decisionFilter !== "all") params.set("decision", decisionFilter);
       if (dateFromFilter) params.set("date_from", dateFromFilter);
       if (dateToFilter) params.set("date_to", dateToFilter);
-      const query = params.toString();
-      const data = await apiFetch<LogEvent[]>(`/api/v1/events/${query ? `?${query}` : ""}`);
+      params.set("skip", String(page * PAGE_SIZE));
+      params.set("limit", String(PAGE_SIZE));
+      const data = await apiFetch<LogEvent[]>(`/api/v1/events/?${params.toString()}`);
       setLogs(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось загрузить события.");
@@ -66,11 +71,13 @@ export default function Logs() {
   }
 
   useEffect(() => {
-    const handle = window.setTimeout(loadEvents, 250);
-    return () => window.clearTimeout(handle);
+    setPage(0);
   }, [zoneIdFilter, decisionFilter, dateFromFilter, dateToFilter]);
 
-  const filteredLogs = useMemo(() => logs, [logs]);
+  useEffect(() => {
+    const handle = window.setTimeout(loadEvents, 250);
+    return () => window.clearTimeout(handle);
+  }, [zoneIdFilter, decisionFilter, dateFromFilter, dateToFilter, page]);
 
   const decisionBadge = (decision: string) => {
     const isAllow = decision.toUpperCase() === "ALLOW";
@@ -86,7 +93,12 @@ export default function Logs() {
   return (
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold">Логи событий</h1>
+          <div>
+            <h1 className="text-2xl font-semibold">Логи событий</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {isLoading ? "Загрузка..." : `Страница ${page + 1} · показано ${logs.length}`}
+            </p>
+          </div>
         </div>
 
         <Card className="mb-4">
@@ -129,9 +141,9 @@ export default function Logs() {
             <TableBody>
               {isLoading ? (
                   <TableRow><TableCell colSpan={6} className="text-center py-8 text-gray-500">Загрузка...</TableCell></TableRow>
-              ) : filteredLogs.length === 0 ? (
+              ) : logs.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center py-8 text-gray-500">Ничего не найдено</TableCell></TableRow>
-              ) : filteredLogs.map((log) => (
+              ) : logs.map((log) => (
                   <TableRow key={log._id} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelectedLog(log)}>
                     <TableCell className="text-sm">{new Date(log.timestamp).toLocaleString()}</TableCell>
                     <TableCell className="text-sm">{people[log.person_id] ?? log.person_id.slice(-6)}</TableCell>
@@ -143,6 +155,17 @@ export default function Logs() {
               ))}
             </TableBody>
           </Table>
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+            <p className="text-sm text-gray-500">Страница {page + 1}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                <ChevronLeft className="size-4 mr-1" />Назад
+              </Button>
+              <Button variant="outline" size="sm" disabled={logs.length < PAGE_SIZE} onClick={() => setPage((p) => p + 1)}>
+                Вперёд<ChevronRight className="size-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>

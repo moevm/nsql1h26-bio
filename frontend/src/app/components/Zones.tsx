@@ -9,11 +9,13 @@ import {
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
-import { Plus, Edit, Trash2, Filter, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { apiFetch } from "../api/client";
 import { useNavigate } from "react-router-dom";
 
 type Zone = { _id: string; name: string; building: string; type: string };
+
+const PAGE_SIZE = 5;
 
 export default function Zones() {
     const [zones, setZones] = useState<Zone[]>([]);
@@ -24,18 +26,20 @@ export default function Zones() {
     const [nameFilter, setNameFilter] = useState("");
     const [buildingFilter, setBuildingFilter] = useState("");
     const [formData, setFormData] = useState({ name: "", building: "", type: "" });
+    const [page, setPage] = useState(0);
     const navigate = useNavigate();
 
     async function loadZones() {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await apiFetch<Zone[]>("/api/v1/zones/");
-            const filtered = data.filter((z) =>
-                (!nameFilter || z.name.toLowerCase().includes(nameFilter.toLowerCase())) &&
-                (!buildingFilter || z.building.toLowerCase().includes(buildingFilter.toLowerCase()))
-            );
-            setZones(filtered);
+            const params = new URLSearchParams();
+            if (nameFilter.trim()) params.set("name", nameFilter.trim());
+            if (buildingFilter.trim()) params.set("building", buildingFilter.trim());
+            params.set("skip", String(page * PAGE_SIZE));
+            params.set("limit", String(PAGE_SIZE));
+            const data = await apiFetch<Zone[]>(`/api/v1/zones/?${params.toString()}`);
+            setZones(data);
         } catch (e) {
             setError(e instanceof Error ? e.message : "Ошибка загрузки.");
         } finally {
@@ -44,9 +48,13 @@ export default function Zones() {
     }
 
     useEffect(() => {
+        setPage(0);
+    }, [nameFilter, buildingFilter]);
+
+    useEffect(() => {
         const h = window.setTimeout(loadZones, 250);
         return () => window.clearTimeout(h);
-    }, [nameFilter, buildingFilter]);
+    }, [nameFilter, buildingFilter, page]);
 
     const handleCreate = () => {
         setEditingZone(null);
@@ -97,7 +105,7 @@ export default function Zones() {
                 <div>
                     <h1 className="text-2xl font-semibold">Зоны</h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        {isLoading ? "Загрузка..." : `Показано: ${zones.length}`}
+                        {isLoading ? "Загрузка..." : `Страница ${page + 1} · показано ${zones.length}`}
                     </p>
                 </div>
                 <Button onClick={handleCreate}><Plus className="size-4 mr-2" />Добавить</Button>
@@ -126,7 +134,7 @@ export default function Zones() {
                             <TableHead>Название</TableHead>
                             <TableHead>Корпус</TableHead>
                             <TableHead>Тип</TableHead>
-                            <TableHead className="text-right w-[100px]">Действия</TableHead>
+                            <TableHead className="text-right w-[120px]">Действия</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -150,6 +158,17 @@ export default function Zones() {
                         ))}
                     </TableBody>
                 </Table>
+                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+                    <p className="text-sm text-gray-500">Страница {page + 1}</p>
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                            <ChevronLeft className="size-4 mr-1" />Назад
+                        </Button>
+                        <Button variant="outline" size="sm" disabled={zones.length < PAGE_SIZE} onClick={() => setPage((p) => p + 1)}>
+                            Вперёд<ChevronRight className="size-4 ml-1" />
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

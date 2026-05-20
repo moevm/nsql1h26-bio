@@ -14,7 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "./ui/select";
 import { Card, CardContent } from "./ui/card";
-import { Plus, Edit, Trash2, Filter, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Filter, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { apiFetch } from "../api/client";
 
 type Role = "student" | "staff" | "guest";
@@ -26,6 +26,8 @@ type Person = {
 };
 type Group = { _id: string; name: string };
 
+const PAGE_SIZE = 5;
+
 export default function Employees() {
   const [people, setPeople] = useState<Person[]>([]);
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ export default function Employees() {
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
+  const [page, setPage] = useState(0);
 
   const [fullNameFilter, setFullNameFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "all">("all");
@@ -61,8 +64,9 @@ export default function Employees() {
       if (roleFilter !== "all") params.set("role", roleFilter);
       if (departmentFilter.trim()) params.set("department", departmentFilter.trim());
       if (statusFilter !== "all") params.set("status", statusFilter);
-      const query = params.toString();
-      const data = await apiFetch<Person[]>(`/api/v1/people/${query ? `?${query}` : ""}`);
+      params.set("skip", String(page * PAGE_SIZE));
+      params.set("limit", String(PAGE_SIZE));
+      const data = await apiFetch<Person[]>(`/api/v1/people/?${params.toString()}`);
       setPeople(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось загрузить список людей.");
@@ -72,9 +76,13 @@ export default function Employees() {
   }
 
   useEffect(() => {
+    setPage(0);
+  }, [fullNameFilter, roleFilter, statusFilter, departmentFilter]);
+
+  useEffect(() => {
     const handle = window.setTimeout(loadPeople, 250);
     return () => window.clearTimeout(handle);
-  }, [fullNameFilter, roleFilter, statusFilter, departmentFilter]);
+  }, [fullNameFilter, roleFilter, statusFilter, departmentFilter, page]);
 
   const handleCreate = () => {
     setEditingPerson(null);
@@ -155,15 +163,13 @@ export default function Employees() {
     setDepartmentFilter("");
   };
 
-  const filteredPeople = useMemo(() => people, [people]);
-
   return (
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold">Люди</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {isLoading ? "Загрузка..." : `Показано: ${filteredPeople.length}`}
+              {isLoading ? "Загрузка..." : `Страница ${page + 1} · показано ${people.length}`}
             </p>
           </div>
           <Button onClick={handleCreate}><Plus className="size-4 mr-2" />Добавить</Button>
@@ -216,15 +222,15 @@ export default function Employees() {
                 <TableHead>Отдел</TableHead>
                 <TableHead>Группы</TableHead>
                 <TableHead>Статус</TableHead>
-                <TableHead className="text-right w-[100px]">Действия</TableHead>
+                <TableHead className="text-right w-[120px]">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                   <TableRow><TableCell colSpan={6} className="text-center py-8 text-gray-500">Загрузка...</TableCell></TableRow>
-              ) : filteredPeople.length === 0 ? (
+              ) : people.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center py-8 text-gray-500">Ничего не найдено</TableCell></TableRow>
-              ) : filteredPeople.map((person) => (
+              ) : people.map((person) => (
                   <TableRow key={person._id}>
                     <TableCell className="font-medium">{person.full_name}</TableCell>
                     <TableCell>{getRoleLabel(person.role)}</TableCell>
@@ -246,6 +252,17 @@ export default function Employees() {
               ))}
             </TableBody>
           </Table>
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+            <p className="text-sm text-gray-500">Страница {page + 1}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                <ChevronLeft className="size-4 mr-1" />Назад
+              </Button>
+              <Button variant="outline" size="sm" disabled={people.length < PAGE_SIZE} onClick={() => setPage((p) => p + 1)}>
+                Вперёд<ChevronRight className="size-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
