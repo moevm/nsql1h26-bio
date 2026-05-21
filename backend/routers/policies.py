@@ -6,9 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from database import get_database
 from repos import PolicyRepository
-from schemas import PolicyCreate, PolicyUpdate, PolicyResponse
+from schemas.schemas import PolicyCreate, PolicyUpdate, PolicyResponse
 from services import get_current_user
-
 
 router = APIRouter(prefix="/policies", tags=["policies"])
 
@@ -64,8 +63,7 @@ async def create_policy(
 
     data["target_id"] = ObjectId(data["target_id"])
     data["allowed_zone_ids"] = [
-        ObjectId(zone_id)
-        for zone_id in data["allowed_zone_ids"]
+        ObjectId(zone_id) for zone_id in data["allowed_zone_ids"]
     ]
 
     inserted_id = await repo.insert(data)
@@ -90,10 +88,12 @@ async def update_policy(
     if "target_id" in update_data and update_data["target_id"] is not None:
         update_data["target_id"] = ObjectId(update_data["target_id"])
 
-    if "allowed_zone_ids" in update_data and update_data["allowed_zone_ids"] is not None:
+    if (
+        "allowed_zone_ids" in update_data
+        and update_data["allowed_zone_ids"] is not None
+    ):
         update_data["allowed_zone_ids"] = [
-            ObjectId(zone_id)
-            for zone_id in update_data["allowed_zone_ids"]
+            ObjectId(zone_id) for zone_id in update_data["allowed_zone_ids"]
         ]
 
     return await repo.update(id, update_data)

@@ -82,15 +82,16 @@ class GroupResponse(Base):
     parent_group_id: Optional[str] = None
     description: Optional[str] = None
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class UserMe(BaseModel):
     username: str
     role: str
     full_name: str
-
 
 
 class ZoneCreate(Base):
@@ -114,18 +115,19 @@ class ZoneResponse(Base):
     type: str
 
 
-
 class DeviceCreate(Base):
 
     type: str
     zone_id: str
     firmware_version: str
 
+
 class DeviceUpdate(Base):
 
     type: Optional[str] = None
     zone_id: Optional[str] = None
     firmware_version: Optional[str] = None
+
 
 class DeviceResponse(Base):
 

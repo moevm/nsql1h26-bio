@@ -2,6 +2,7 @@ from bson import ObjectId
 from typing import Optional
 from datetime import datetime
 
+
 class BaseRepository:
     def __init__(self, collection):
         self.collection = collection
@@ -23,10 +24,9 @@ class BaseRepository:
     async def update(self, id: str, data: dict):
         await self.collection.update_one({"_id": ObjectId(id)}, {"$set": data})
         return await self.find_by_id(id)
-    
+
     async def delete(self, id: str):
         await self.collection.delete_one({"_id": ObjectId(id)})
-
 
     def _serialize(self, doc: dict) -> dict:
         if not doc:
@@ -39,12 +39,21 @@ class BaseRepository:
             doc["group_ids"] = [str(gid) for gid in doc["group_ids"]]
 
         if "allowed_zone_ids" in doc:
-            doc["allowed_zone_ids"] = [str(zone_id) for zone_id in doc["allowed_zone_ids"]]
+            doc["allowed_zone_ids"] = [
+                str(zone_id) for zone_id in doc["allowed_zone_ids"]
+            ]
 
-        for field in ["person_id", "device_id", "zone_id", "parent_group_id", "target_id"]:
+        for field in [
+            "person_id",
+            "device_id",
+            "zone_id",
+            "parent_group_id",
+            "target_id",
+        ]:
             if field in doc and doc[field] is not None:
                 doc[field] = str(doc[field])
         return doc
+
 
 class PersonRepository(BaseRepository):
     def __init__(self, db):
@@ -101,7 +110,9 @@ class EventRepository(BaseRepository):
             if date_to:
                 query["timestamp"]["$lte"] = date_to
 
-        cursor = self.collection.find(query).sort("timestamp", -1).skip(skip).limit(limit)
+        cursor = (
+            self.collection.find(query).sort("timestamp", -1).skip(skip).limit(limit)
+        )
         docs = await cursor.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]
 
@@ -156,6 +167,7 @@ class ZoneRepository(BaseRepository):
         cursor = self.collection.find(query).skip(skip).limit(limit)
         docs = await cursor.to_list(length=limit)
         return [self._serialize(doc) for doc in docs]
+
 
 class DeviceRepository(BaseRepository):
     def __init__(self, db):

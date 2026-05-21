@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import get_database
 from services import get_current_user
 
-
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
@@ -15,14 +14,11 @@ ALLOWED_AXES = {
     "decision": "$decision",
     "reason": "$reason",
     "auth_method": "$auth_method",
-
     "zone_name": "$zone.name",
     "zone_building": "$zone.building",
     "zone_type": "$zone.type",
-
     "device_type": "$device.type",
     "device_firmware_version": "$device.firmware_version",
-
     "person_role": "$person.role",
     "person_department": "$person.department",
     "person_status": "$person.status",
@@ -33,32 +29,24 @@ ALLOWED_AXES = {
 async def get_analytics(
     x_axis: str,
     y_axis: str,
-
     date_from: Optional[datetime] = None,
     date_to: Optional[datetime] = None,
-
     person_id: Optional[str] = None,
     zone_id: Optional[str] = None,
     device_id: Optional[str] = None,
-
     auth_method: Optional[str] = None,
     decision: Optional[str] = None,
     reason: Optional[str] = None,
-
     recognition_score_from: Optional[float] = None,
     recognition_score_to: Optional[float] = None,
-
     person_role: Optional[str] = None,
     person_department: Optional[str] = None,
     person_status: Optional[str] = None,
-
     zone_name: Optional[str] = None,
     zone_building: Optional[str] = None,
     zone_type: Optional[str] = None,
-
     device_type: Optional[str] = None,
     device_firmware_version: Optional[str] = None,
-
     current_user: str = Depends(get_current_user),
 ):
     if x_axis not in ALLOWED_AXES:
@@ -144,79 +132,83 @@ async def get_analytics(
     if event_match:
         pipeline.append({"$match": event_match})
 
-    pipeline.extend([
-        {
-            "$lookup": {
-                "from": "persons",
-                "localField": "person_id",
-                "foreignField": "_id",
-                "as": "person",
-            }
-        },
-        {
-            "$unwind": {
-                "path": "$person",
-                "preserveNullAndEmptyArrays": True,
-            }
-        },
-        {
-            "$lookup": {
-                "from": "zones",
-                "localField": "zone_id",
-                "foreignField": "_id",
-                "as": "zone",
-            }
-        },
-        {
-            "$unwind": {
-                "path": "$zone",
-                "preserveNullAndEmptyArrays": True,
-            }
-        },
-        {
-            "$lookup": {
-                "from": "devices",
-                "localField": "device_id",
-                "foreignField": "_id",
-                "as": "device",
-            }
-        },
-        {
-            "$unwind": {
-                "path": "$device",
-                "preserveNullAndEmptyArrays": True,
-            }
-        },
-    ])
+    pipeline.extend(
+        [
+            {
+                "$lookup": {
+                    "from": "persons",
+                    "localField": "person_id",
+                    "foreignField": "_id",
+                    "as": "person",
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$person",
+                    "preserveNullAndEmptyArrays": True,
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "zones",
+                    "localField": "zone_id",
+                    "foreignField": "_id",
+                    "as": "zone",
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$zone",
+                    "preserveNullAndEmptyArrays": True,
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "devices",
+                    "localField": "device_id",
+                    "foreignField": "_id",
+                    "as": "device",
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$device",
+                    "preserveNullAndEmptyArrays": True,
+                }
+            },
+        ]
+    )
 
     if joined_match:
         pipeline.append({"$match": joined_match})
 
-    pipeline.extend([
-        {
-            "$group": {
-                "_id": {
-                    "x": ALLOWED_AXES[x_axis],
-                    "y": ALLOWED_AXES[y_axis],
-                },
-                "count": {"$sum": 1},
-            }
-        },
-        {
-            "$project": {
-                "_id": 0,
-                "x": "$_id.x",
-                "y": "$_id.y",
-                "count": 1,
-            }
-        },
-        {
-            "$sort": {
-                "x": 1,
-                "y": 1,
-            }
-        },
-    ])
+    pipeline.extend(
+        [
+            {
+                "$group": {
+                    "_id": {
+                        "x": ALLOWED_AXES[x_axis],
+                        "y": ALLOWED_AXES[y_axis],
+                    },
+                    "count": {"$sum": 1},
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "x": "$_id.x",
+                    "y": "$_id.y",
+                    "count": 1,
+                }
+            },
+            {
+                "$sort": {
+                    "x": 1,
+                    "y": 1,
+                }
+            },
+        ]
+    )
 
     cursor = db.access_events.aggregate(pipeline)
     result = await cursor.to_list(length=None)

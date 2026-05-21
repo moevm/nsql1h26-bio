@@ -3,13 +3,15 @@ from typing import Optional
 from datetime import datetime, timezone
 from database import get_database
 from repos import EventRepository
-from schemas import EventResponse
+from schemas.schemas import EventResponse
 from services import get_current_user
 
 router = APIRouter(prefix="/events", tags=["events"])
 
+
 async def get_event_repo() -> EventRepository:
     return EventRepository(get_database())
+
 
 def to_utc(dt: Optional[datetime]) -> Optional[datetime]:
     if dt is None:
@@ -18,16 +20,17 @@ def to_utc(dt: Optional[datetime]) -> Optional[datetime]:
         return dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc)
 
-@router.get('/', response_model=list[EventResponse])
+
+@router.get("/", response_model=list[EventResponse])
 async def get_events(
-        zone_id: Optional[str] = None,
-        date_from: Optional[datetime] = None,
-        date_to: Optional[datetime] = None,
-        decision: Optional[str] = None,
-        skip: int = 0,
-        limit: int = 100,
-        repo: EventRepository = Depends(get_event_repo),
-        current_user: str = Depends(get_current_user),
+    zone_id: Optional[str] = None,
+    date_from: Optional[datetime] = None,
+    date_to: Optional[datetime] = None,
+    decision: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    repo: EventRepository = Depends(get_event_repo),
+    current_user: str = Depends(get_current_user),
 ):
     return await repo.filter(
         zone_id=zone_id,
@@ -39,11 +42,11 @@ async def get_events(
     )
 
 
-@router.get('/{id}', response_model=EventResponse)
+@router.get("/{id}", response_model=EventResponse)
 async def get_event(
-        id: str,
-        repo: EventRepository = Depends(get_event_repo),
-        current_user: str = Depends(get_current_user),
+    id: str,
+    repo: EventRepository = Depends(get_event_repo),
+    current_user: str = Depends(get_current_user),
 ):
     data = await repo.find_by_id(id)
     if not data:
@@ -51,11 +54,11 @@ async def get_event(
     return data
 
 
-@router.delete('/{id}')
+@router.delete("/{id}")
 async def delete_event(
-        id: str,
-        repo: EventRepository = Depends(get_event_repo),
-        current_user: str = Depends(get_current_user),
+    id: str,
+    repo: EventRepository = Depends(get_event_repo),
+    current_user: str = Depends(get_current_user),
 ):
     existing = await repo.find_by_id(id)
     if not existing:

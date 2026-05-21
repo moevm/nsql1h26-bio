@@ -117,16 +117,11 @@ async def export_data(
         cursor = db[collection_name].find({})
         documents = await cursor.to_list(length=None)
 
-        result[collection_name] = [
-            serialize_value(document)
-            for document in documents
-        ]
+        result[collection_name] = [serialize_value(document) for document in documents]
 
     return JSONResponse(
         content=result,
-        headers={
-            "Content-Disposition": "attachment; filename=skud_export.json"
-        },
+        headers={"Content-Disposition": "attachment; filename=skud_export.json"},
     )
 
 
@@ -198,8 +193,7 @@ async def import_data(
 
         if documents:
             prepared_documents = [
-                deserialize_document(document)
-                for document in documents
+                deserialize_document(document) for document in documents
             ]
 
             await db[collection_name].insert_many(prepared_documents)
