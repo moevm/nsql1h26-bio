@@ -15,6 +15,7 @@ import ZoneDetail from "./components/ZoneDetail";
 import DeviceDetail from "./components/DeviceDetail";
 import GroupDetail from "./components/GroupDetail";
 import Policies from "./components/Policies";
+import Analytics from "./components/Analytics";
 import { getToken } from "./api/client";
 
 function ProtectedLayout() {
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
           { path: "map", element: <FacilityMap /> },
           { path: "import-export", element: <ImportExport /> },
           { path: "profile", element: <Profile /> },
+          { path: "analytics", element: <Analytics /> },
         ],
       },
     ],
