@@ -4,11 +4,11 @@ from bson import ObjectId
 
 from database import get_database
 from repos import DeviceRepository
-from schemas import DeviceCreate, DeviceUpdate, DeviceResponse
+from schemas.schemas import DeviceCreate, DeviceUpdate, DeviceResponse
 from services import get_current_user
 
-
 router = APIRouter(prefix="/devices", tags=["devices"])
+
 
 async def get_device_repo() -> DeviceRepository:
     return DeviceRepository(get_database())
@@ -16,13 +16,13 @@ async def get_device_repo() -> DeviceRepository:
 
 @router.get("/", response_model=list[DeviceResponse])
 async def get_devices(
-        type: Optional[str] = None,
-        zone_id: Optional[str] = None,
-        firmware_version: Optional[str] = None,
-        skip: int = 0,
-        limit: int = 100,
-        repo: DeviceRepository = Depends(get_device_repo),
-        user: dict = Depends(get_current_user)
+    type: Optional[str] = None,
+    zone_id: Optional[str] = None,
+    firmware_version: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    repo: DeviceRepository = Depends(get_device_repo),
+    user: dict = Depends(get_current_user),
 ):
     return await repo.filter(
         type=type,
@@ -35,9 +35,9 @@ async def get_devices(
 
 @router.get("/{id}", response_model=DeviceResponse)
 async def get_device(
-        id: str,
-        repo: DeviceRepository = Depends(get_device_repo),
-        user: dict = Depends(get_current_user)
+    id: str,
+    repo: DeviceRepository = Depends(get_device_repo),
+    user: dict = Depends(get_current_user),
 ):
     data = await repo.find_by_id(id)
 
@@ -49,9 +49,9 @@ async def get_device(
 
 @router.post("/", response_model=DeviceResponse)
 async def create_device(
-        device: DeviceCreate,
-        repo: DeviceRepository = Depends(get_device_repo),
-        user: dict = Depends(get_current_user)
+    device: DeviceCreate,
+    repo: DeviceRepository = Depends(get_device_repo),
+    user: dict = Depends(get_current_user),
 ):
     data = device.model_dump()
     data["zone_id"] = ObjectId(data["zone_id"])
@@ -63,10 +63,10 @@ async def create_device(
 
 @router.put("/{id}", response_model=DeviceResponse)
 async def update_device(
-        id: str,
-        device: DeviceUpdate,
-        repo: DeviceRepository = Depends(get_device_repo),
-        user: dict = Depends(get_current_user)
+    id: str,
+    device: DeviceUpdate,
+    repo: DeviceRepository = Depends(get_device_repo),
+    user: dict = Depends(get_current_user),
 ):
     existing = await repo.find_by_id(id)
 
@@ -83,9 +83,9 @@ async def update_device(
 
 @router.delete("/{id}")
 async def delete_device(
-        id: str,
-        repo: DeviceRepository = Depends(get_device_repo),
-        user: dict = Depends(get_current_user)
+    id: str,
+    repo: DeviceRepository = Depends(get_device_repo),
+    user: dict = Depends(get_current_user),
 ):
     existing = await repo.find_by_id(id)
 

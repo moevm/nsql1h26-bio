@@ -9,8 +9,9 @@ from repos import (
     GroupRepository,
     ZoneRepository,
     DeviceRepository,
-    PolicyRepository
+    PolicyRepository,
 )
+
 
 @asynccontextmanager
 async def lifespan(app):
@@ -31,6 +32,7 @@ async def lifespan(app):
     print("=== Сервер СКУД ЛЭТИ запущен и база инициализирована ===")
     yield
     print("=== Сервер СКУД ЛЭТИ остановлен ===")
+
 
 app.router.lifespan_context = lifespan
 

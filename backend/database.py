@@ -10,5 +10,6 @@ DB_NAME = os.getenv("DB_NAME", "skud_db")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
+
 def get_database():
     return db
