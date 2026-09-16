@@ -4,19 +4,26 @@ import {
   LayoutDashboard, Users, FileText, Map,
   Database, Shield, LogOut, Server, GitBranch, ShieldCheck, BarChart2
 } from "lucide-react";
-import { clearToken, apiFetch } from "../api/client";
+import { useAuth } from "react-oidc-context";
+import { setToken, apiFetch } from "../api/client";
 
 type UserMe = { username: string; role: string; full_name: string };
 
 export default function Root() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<UserMe | null>(null);
+const navigate = useNavigate();
+const auth = useAuth();
+const [user, setUser] = useState<UserMe | null>(null);
 
-  useEffect(() => {
-    apiFetch<UserMe>("/api/v1/auth/me")
+useEffect(() => {
+setToken(auth.user?.access_token ?? null);
+  }, [auth.user]);
+
+useEffect(() => {
+if (!auth.user) return;
+apiFetch<UserMe>("/api/v1/auth/me")
         .then(setUser)
         .catch(() => {});
-  }, []);
+  }, [auth.user]);
 
   const initials = user?.full_name
       ? user.full_name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
@@ -35,9 +42,10 @@ export default function Root() {
   ];
 
   function handleLogout() {
-    clearToken();
-    navigate("/login", { replace: true });
-  }
+  setToken(null);
+  auth.removeUser();
+  navigate("/login", { replace: true });
+    }
 
   return (
       <div className="flex h-screen bg-gray-50">

@@ -16,10 +16,19 @@ import DeviceDetail from "./components/DeviceDetail";
 import GroupDetail from "./components/GroupDetail";
 import Policies from "./components/Policies";
 import Analytics from "./components/Analytics";
-import { getToken } from "./api/client";
+import { useAuth } from "react-oidc-context";
 
 function ProtectedLayout() {
-  if (!getToken()) return <Navigate to="/login" replace />;
+  const auth = useAuth();
+
+  if (auth.isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
+  }
+
+  if (!auth.isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return <Outlet />;
 }
 
