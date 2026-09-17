@@ -15,10 +15,6 @@ const auth = useAuth();
 const [user, setUser] = useState<UserMe | null>(null);
 
 useEffect(() => {
-setToken(auth.user?.access_token ?? null);
-  }, [auth.user]);
-
-useEffect(() => {
 if (!auth.user) return;
 apiFetch<UserMe>("/api/v1/auth/me")
         .then(setUser)

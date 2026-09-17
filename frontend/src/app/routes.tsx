@@ -17,6 +17,7 @@ import GroupDetail from "./components/GroupDetail";
 import Policies from "./components/Policies";
 import Analytics from "./components/Analytics";
 import { useAuth } from "react-oidc-context";
+import { setToken } from "./api/client";
 
 function ProtectedLayout() {
   const auth = useAuth();
@@ -28,6 +29,8 @@ function ProtectedLayout() {
   if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  setToken(auth.user?.access_token ?? null);
 
   return <Outlet />;
 }
