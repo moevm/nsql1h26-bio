@@ -1,34 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+let currentToken: string | null = null;
+
+export function setToken(token: string | null): void {
+  currentToken = token;
+}
+
 export function getToken(): string | null {
-  return localStorage.getItem("access_token");
-}
-
-export function setToken(token: string): void {
-  localStorage.setItem("access_token", token);
-}
-
-export function clearToken(): void {
-  localStorage.removeItem("access_token");
-}
-
-export async function loginRequest(username: string, password: string): Promise<string> {
-  const formData = new URLSearchParams();
-  formData.append("username", username);
-  formData.append("password", password);
-
-  const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formData.toString(),
-  });
-
-  if (!response.ok) {
-    throw new Error("Неверный логин или пароль.");
-  }
-
-  const data = await response.json();
-  return data.access_token;
+  return currentToken;
 }
 
 export async function apiFetch<T>(
@@ -47,7 +26,7 @@ export async function apiFetch<T>(
   });
 
   if (response.status === 401) {
-    clearToken();
+    setToken(null);
     window.location.href = "/login";
     throw new Error("Unauthorized");
   }

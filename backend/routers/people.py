@@ -5,7 +5,7 @@ from datetime import datetime
 from database import get_database
 from repos import PersonRepository
 from schemas.schemas import PersonCreate, PersonUpdate, PersonResponse, RoleEnum, StatusEnum
-from services import get_current_user
+from services import get_current_user_oidc as get_current_user
 from bson import ObjectId
 
 router = APIRouter(prefix="/people", tags=["people"])

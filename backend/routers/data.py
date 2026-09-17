@@ -5,7 +5,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 from database import get_database
-from services import get_current_user
+from services import get_current_user_oidc as get_current_user
 import json
 
 router = APIRouter(tags=["data"])

@@ -6,6 +6,21 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: skud_keycloak
+    restart: always
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8081
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    ports:
+    - "127.0.0.1:8081:8080"
+
   backend:
     build: ./backend
     container_name: skud_backend
@@ -14,14 +29,18 @@ services:
       - "127.0.0.1:8000:8000"
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
+      - keycloak
 
   frontend:
     build:
       context: ./frontend
       args:
         VITE_API_URL: http://localhost:8000
+        VITE_KEYCLOAK_URL: http://localhost:8081
     container_name: skud_frontend
     restart: always
     ports:

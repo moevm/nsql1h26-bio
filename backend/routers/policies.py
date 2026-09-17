@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import get_database
 from repos import PolicyRepository
 from schemas.schemas import PolicyCreate, PolicyUpdate, PolicyResponse
-from services import get_current_user
+from services import get_current_user_oidc as get_current_user
 
 router = APIRouter(prefix="/policies", tags=["policies"])
 

@@ -6,6 +6,8 @@ COPY . .
 
 ARG VITE_API_URL=http://localhost:8000
 ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_KEYCLOAK_URL=http://localhost:8081
+ENV VITE_KEYCLOAK_URL=$VITE_KEYCLOAK_URL
 RUN npm run build
 
 FROM nginx:alpine

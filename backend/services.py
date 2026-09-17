@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from passlib.context import CryptContext
 from fastapi import HTTPException, Security
 from fastapi.security import OAuth2PasswordBearer
+from jwt import PyJWKClient
 from database import get_database
 
 if not hasattr(bcrypt, "__about__"):
@@ -15,6 +16,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-key-for-prototype")
 ALGORITHM = "HS256"
+
+KEYCLOAK_ISSUER = os.getenv("KEYCLOAK_ISSUER")
+KEYCLOAK_JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL")
+KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID")
+_jwk_client = PyJWKClient(KEYCLOAK_JWKS_URL) if KEYCLOAK_JWKS_URL else None
 
 
 def verify_password(plain_password, hashed_password):
@@ -42,6 +48,24 @@ async def get_current_user(token: str = Security(oauth2_scheme)):
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Неверный токен")
 
+async def get_current_user_oidc(token: str = Security(oauth2_scheme)):
+    try:
+        signing_key = _jwk_client.get_signing_key_from_jwt(token)
+        payload = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            issuer=KEYCLOAK_ISSUER,
+            options={"verify_aud": False},
+        )
+        if payload.get("azp") != KEYCLOAK_CLIENT_ID:
+            raise HTTPException(status_code=401, detail="Неверный клиент токена")
+        username: str = payload.get("preferred_username")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Неверный токен")
+        return username
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Неверный токен")
 
 class SkudService:
     def __init__(self, repos: dict):
