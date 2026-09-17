@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from database import get_database
 from repos import EventRepository
 from schemas.schemas import EventResponse
-from services import get_current_user
+from services import get_current_user_oidc as get_current_user
 
 router = APIRouter(prefix="/events", tags=["events"])
 

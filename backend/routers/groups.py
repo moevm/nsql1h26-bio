@@ -4,7 +4,7 @@ from typing import Optional
 from database import get_database
 from repos import GroupRepository
 from schemas.schemas import GroupCreate, GroupUpdate, GroupResponse
-from services import get_current_user
+from services import get_current_user_oidc as get_current_user
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 

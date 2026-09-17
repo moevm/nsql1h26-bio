@@ -4,7 +4,7 @@ from typing import Optional
 from database import get_database
 from repos import ZoneRepository
 from schemas.schemas import ZoneCreate, ZoneUpdate, ZoneResponse
-from services import get_current_user
+from services import get_current_user_oidc as get_current_user
 
 router = APIRouter(prefix="/zones", tags=["zones"])
 

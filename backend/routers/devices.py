@@ -5,7 +5,7 @@ from bson import ObjectId
 from database import get_database
 from repos import DeviceRepository
 from schemas.schemas import DeviceCreate, DeviceUpdate, DeviceResponse
-from services import get_current_user
+from services import get_current_user_oidc as get_current_user
 
 router = APIRouter(prefix="/devices", tags=["devices"])
 
